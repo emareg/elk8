@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Hex to Mnemonic Converter</title>
+</head>
+<body>
+  <h1>Hex to Mnemonic Converter</h1>
+  <label for="hexString">Enter a Hex String (e.g. <span id="ex">3c2f50a4</span>):</label>
+  <input type="text" id="hexString" placeholder="e.g., 3c2f50a4" />
+  <button onclick="convertHexToMnemonic()">Convert</button>
+  <h2>Mnemonic:</h2>
+  <p>Bip39: <span id="bip39mnemonic"></span></p>
+  <p>rfc2289: <span id="rfc2289mnemonic"></span></p>
+  <p>elk8: <span id="elk8mnemonic"></span></p>
+
+  <!-- <script src="https://cdn.jsdelivr.net/npm/bip39@3.1.0/dist/bip39.min.js"></script> -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/bip39@3.1.0/src/index.min.js"></script> -->
+  <script type="text/javascript" src="wlists/bip39-json.js"></script>
+  <script type="text/javascript" src="wlists/rfc2289-json.js"></script>
+  <script type="text/javascript" src="wlists/elk8-json.js"></script>
+  <script>
+    function convertHexToMnemonic() {
+      const hexString = document.getElementById('hexString').value;
+      const bip39words = hexToMnemonic(hexString, bip39enc);
+      const rfc2289words = hexToMnemonic(hexString, rfc2289enc);
+      const elk8words = hexToMnemonic(hexString, elk8enc);
+      document.getElementById('bip39mnemonic').textContent = bip39words;
+      document.getElementById('rfc2289mnemonic').textContent = rfc2289words;
+      document.getElementById('elk8mnemonic').textContent = elk8words;
+      document.getElementById('ex').textContent = randHex(16);
+    }
+
+    function byteArrayToIndices(byteArray) {
+        const indices = [];
+        let current11bit = 0;
+        let bitCount = 0;
+
+        for (let i = 0; i < byteArray.length; i++) {
+            const byte = byteArray[i];
+
+            for (let j = 7; j >= 0; j--) {
+            current11bit <<= 1; // left shift to make space
+            current11bit |= (byte >> j) & 1; // fill in bits from left (start j=7)
+            bitCount++;
+
+            if (bitCount === 11) {
+                indices.push(current11bit);
+                current11bit = 0;
+                bitCount = 0;
+            }
+            }
+        }
+        if (bitCount != 0){ indices.push(current11bit) }
+
+        return indices;
+    }
+
+    function randHex(bytes){
+        let hexCode = "0123456789ABCDEF";
+        let hex = ""
+        for (let i = 0; i < Math.ceil(bytes*2); i++)
+            hex += hexCode[Math.floor(Math.random() * 16)];
+        return hex
+    }
+
+    function bip39enc(ba){
+        const mnemonicIndices = byteArrayToIndices(ba);
+        const mnemonicWords = mnemonicIndices.map((index) => bip39wl[index]);
+        return mnemonicWords.join(' ');        
+    }
+
+    function rfc2289enc(ba){
+        const mnemonicIndices = byteArrayToIndices(ba);
+        const mnemonicWords = mnemonicIndices.map((index) => rfc2289wl[index]);
+        return mnemonicWords.join(' ');        
+    }
+
+    function elk8enc(ba){
+        const mnemonicWords = []
+        const mnemonicIndices = ba;
+        for (let i = 0; i < mnemonicIndices.length; i++) {
+            mnemonicWords.push(elk8wl[mnemonicIndices[i]][i%2]);
+        }
+        return mnemonicWords.join(' ');        
+    }
+
+    function hexToMnemonic(hexString, fn) {
+      const hex = hexString.match(/[0-9a-fA-F]{2}/g);
+      const buffer = new Uint8Array(hex.length);
+      var mnemonic = ""
+      
+      for (let i = 0; i < hex.length; i++) {
+          var num = parseInt(hex[i], 16);
+          buffer[i] = num
+          mnemonic += bip39wl[num]+" "
+        }
+        const entropy = Array.from(buffer);
+        
+      return fn(entropy);
+    }
+  </script>
+</body>
+</html>
