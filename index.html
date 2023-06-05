@@ -9,23 +9,29 @@
   <input type="text" id="hexString" placeholder="e.g., 3c2f50a4" />
   <button onclick="convertHexToMnemonic()">Convert</button>
   <h2>Mnemonic:</h2>
-  <p>Bip39: <span id="bip39mnemonic"></span></p>
-  <p>rfc2289: <span id="rfc2289mnemonic"></span></p>
-  <p>elk8: <span id="elk8mnemonic"></span></p>
+  <pre>
+  Bip39:   <span id="bip39mnemonic"></span><br>
+  rfc2289: <span id="rfc2289mnemonic"></span><br>
+  pgp:     <span id="pgpmnemonic"></span><br>
+  elk8:    <span id="elk8mnemonic"></span>
+  </pre>
 
   <!-- <script src="https://cdn.jsdelivr.net/npm/bip39@3.1.0/dist/bip39.min.js"></script> -->
   <!-- <script src="https://cdn.jsdelivr.net/npm/bip39@3.1.0/src/index.min.js"></script> -->
   <script type="text/javascript" src="wlists/bip39-json.js"></script>
   <script type="text/javascript" src="wlists/rfc2289-json.js"></script>
+  <script type="text/javascript" src="wlists/pgp-json.js"></script>
   <script type="text/javascript" src="wlists/elk8-json.js"></script>
   <script>
     function convertHexToMnemonic() {
       const hexString = document.getElementById('hexString').value;
       const bip39words = hexToMnemonic(hexString, bip39enc);
       const rfc2289words = hexToMnemonic(hexString, rfc2289enc);
+      const pgpwords = hexToMnemonic(hexString, pgpenc);
       const elk8words = hexToMnemonic(hexString, elk8enc);
       document.getElementById('bip39mnemonic').textContent = bip39words;
       document.getElementById('rfc2289mnemonic').textContent = rfc2289words;
+      document.getElementById('pgpmnemonic').textContent = pgpwords;
       document.getElementById('elk8mnemonic').textContent = elk8words;
       document.getElementById('ex').textContent = randHex(16);
     }
@@ -75,6 +81,15 @@
         return mnemonicWords.join(' ');        
     }
 
+    function pgpenc(ba){
+        const mnemonicWords = []
+        const mnemonicIndices = ba;
+        for (let i = 0; i < mnemonicIndices.length; i++) {
+            mnemonicWords.push(pgpwl[mnemonicIndices[i]][i%2]);
+        }
+        return mnemonicWords.join(' ');        
+    }
+
     function elk8enc(ba){
         const mnemonicWords = []
         const mnemonicIndices = ba;
@@ -85,6 +100,7 @@
     }
 
     function hexToMnemonic(hexString, fn) {
+      if (hexString.length % 2){ hexString = "0"+hexString; }
       const hex = hexString.match(/[0-9a-fA-F]{2}/g);
       const buffer = new Uint8Array(hex.length);
       var mnemonic = ""
