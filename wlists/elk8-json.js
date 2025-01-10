@@ -250,7 +250,7 @@ elk8wl = [
 	["fresh", "fish"],
 	["funny", "family"],
 	["formal", "fan"],
-	["firebomb", "firebomb"],
+	["firebomb", "flashbulb"],
 	["fanatic", "fabric"],
 	["fluid", "friend"],
 	["future", "fire"],
